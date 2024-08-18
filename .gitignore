@@ -1,0 +1,5 @@
+.DS_Store
+.vscode
+OneBillionWrites.xcodeproj/project.xcworkspace/xcuserdata
+OneBillionWrites.xcodeproj/xcuserdata
+output.txt
