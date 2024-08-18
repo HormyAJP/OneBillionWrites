@@ -16,6 +16,8 @@
 
 #define MAX_WEATHER_STATIONS 10000
 #define MAX_ROW_SIZE (100 + 1 + 4 + 1)
+// Heuristally this was doing quite well.
+#define WRITE_BUFFER_SIZE 4096 * 8
 
 typedef struct station_data {
     size_t num_indices;
@@ -23,18 +25,18 @@ typedef struct station_data {
     size_t station_indices[MAX_WEATHER_STATIONS];
 } station_data;
 
-inline int myrand_wrapper_rand(void) {
+static inline int myrand_wrapper_rand(void) {
     return rand();
 }
 
-inline int myrand_wrapper_const(void) {
+static inline int myrand_wrapper_const(void) {
     return 1;
 }
 
 // Change this to use different rand implementations in the
 // loops.
-inline int myrand(void) {
-    return myrand_wrapper_const();
+static inline int myrand(void) {
+    return myrand_wrapper_rand();
 }
 
 void shuffle_indices(char* indices, size_t count) {
@@ -78,45 +80,54 @@ station_data* create_weather_stations(size_t num_required_stations) {
     return data;
 }
 
-inline const char* get_random_weather_station(const station_data* data) {
-    // TODO: This rand call seems significant
+static inline const char* get_random_weather_station(const station_data* data) {
+    // TODO: This rand call seems significant. Why not just use an incrementing number?
+    // That would give a uniform dist!
     return data->station_names[data->station_indices[rand() % data->num_indices]];
 }
 
-inline void write_random_temperature(char** buffer) {
-    int r = myrand();
-    if (myrand() > RAND_MAX) {
-        *((*buffer)++) = '-';
+static inline void write_random_temperature_and_newline(char** buffer) {
+    int index = myrand() % NUMBER_OF_NUMBERS;
+    size_t strsize = 4;
+    if (index > FIVE_CHAR_LIMIT) {
+        strsize = 6;
+    } else if (index > FOUR_CHAR_LIMIT) {
+        strsize = 5;
     }
-
-    if (myrand() > RAND_MAX) {
-        *((*buffer)++) = '0' + (myrand() % 10);
-    }
-    *((*buffer)++) = '0' + (myrand() % 10);
-    *((*buffer)++) = '.';
-    *((*buffer)++) = '0' + (myrand() % 10);
+    // TODO: Can I write a faster implementation here which avoids moving *buffer
+    // afterwards? May not make much difference.
+    memcpy(*buffer, numbers[index], strsize);
+    (*buffer) += strsize;
 }
 
-inline void write_line(FILE* outfile, const station_data* data) {
-    char BUFFER[MAX_ROW_SIZE];
-    char* buffer = BUFFER;
+static inline void write_line(FILE* outfile, const station_data* data, char** pbuf) {
     const char* station_name = get_random_weather_station(data);
-    strcpy(buffer, station_name);
-    buffer += strlen(station_name);
-    *buffer++ = ';';
-    write_random_temperature(&buffer);
-    *buffer++ = '\n';
-    fwrite(BUFFER, 1, buffer - BUFFER, outfile);
+    strcpy(*pbuf, station_name); // Copying makes sense as we're managing the fwrite buffer ourselves
+    *pbuf += strlen(station_name); // Semi colon is included in station name
+    write_random_temperature_and_newline(pbuf);
 }
 
 void write_data(FILE* f, int num_rows, int num_station_names) {
+    // Switch to unbuffered writes. Buffering is normally good, but in our case
+    // this will lead to another copy of memory. Instead, we manually manage
+    // the buffer and then call fwrite once we're happy it's full.
+    setbuf(f, NULL);
+    
     station_data* data = create_weather_stations(num_station_names);
+    alignas(4096) char BUFFER[WRITE_BUFFER_SIZE];
+    char* pbuf = BUFFER;
     for (size_t i = 0; i < num_rows; ++i) {
-        if (i % 1000000 == 0) {
-            printf("Wrote: %zu lines\n", i);
+        if (i % 1'000'000 == 0) {
+            printf("Progress: %zu lines\n", i);
         }
-        write_line(f, data);
+        write_line(f, data, &pbuf);
+        size_t buffer_used = (pbuf - BUFFER);
+        if (WRITE_BUFFER_SIZE - buffer_used < MAX_ROW_SIZE) {
+            fwrite(BUFFER, 1, buffer_used, f);
+            pbuf = BUFFER;
+        }
     }
+    
     free(data);
 }
 
@@ -126,7 +137,7 @@ int main(int argc, char * argv[]) {
     
     const char* filename = "output.txt";
     int num_station_names = 100;
-    int num_rows = 10000000;
+    int num_rows = 10'000'000;
     
     while ((opt = getopt(argc, argv, optstring)) != -1) {
         switch (opt) {
