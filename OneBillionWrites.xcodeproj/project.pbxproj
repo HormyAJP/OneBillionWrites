@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6CC76CA32C71933D00E10E6F /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 6CC76CA22C71933D00E10E6F /* main.c */; };
-		6CC76CAB2C71962B00E10E6F /* weather_stations.c in Sources */ = {isa = PBXBuildFile; fileRef = 6CC76CAA2C71962B00E10E6F /* weather_stations.c */; };
+		6CC76CAB2C71962B00E10E6F /* static_data.c in Sources */ = {isa = PBXBuildFile; fileRef = 6CC76CAA2C71962B00E10E6F /* static_data.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,8 +26,8 @@
 /* Begin PBXFileReference section */
 		6CC76C9F2C71933D00E10E6F /* OneBillionWrites */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OneBillionWrites; sourceTree = BUILT_PRODUCTS_DIR; };
 		6CC76CA22C71933D00E10E6F /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		6CC76CA92C71962B00E10E6F /* weather_stations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = weather_stations.h; sourceTree = "<group>"; };
-		6CC76CAA2C71962B00E10E6F /* weather_stations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = weather_stations.c; sourceTree = "<group>"; };
+		6CC76CA92C71962B00E10E6F /* static_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = static_data.h; sourceTree = "<group>"; };
+		6CC76CAA2C71962B00E10E6F /* static_data.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = static_data.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,8 +61,8 @@
 			isa = PBXGroup;
 			children = (
 				6CC76CA22C71933D00E10E6F /* main.c */,
-				6CC76CA92C71962B00E10E6F /* weather_stations.h */,
-				6CC76CAA2C71962B00E10E6F /* weather_stations.c */,
+				6CC76CA92C71962B00E10E6F /* static_data.h */,
+				6CC76CAA2C71962B00E10E6F /* static_data.c */,
 			);
 			path = OneBillionWrites;
 			sourceTree = "<group>";
@@ -125,7 +125,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6CC76CA32C71933D00E10E6F /* main.c in Sources */,
-				6CC76CAB2C71962B00E10E6F /* weather_stations.c in Sources */,
+				6CC76CAB2C71962B00E10E6F /* static_data.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

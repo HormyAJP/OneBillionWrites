@@ -1,7 +1,9 @@
 # Ideas for improvement
 
 Current timings:
-* HEAD: 10,000,000 rows, ~0.45s total (remove need for rand in name generation)
+* HEAD: 10,000,000 rows, ~0.2s total (randomness all gone)
+* 00b4bd1346d: 10,000,000 rows, ~0.4s total (Pre-calc string lengths of the place names)
+* 00b4bd1346d: 10,000,000 rows, ~0.45s total (remove need for rand in name generation)
 * 0580b86688f: 10,000,000 rows, ~0.6s total (switched to lookup for numbers)
 * (no commit): 10,000,000 rows, ~0.9s total (switched to managing write buffers myself)
 * e38e045c: 10,000,000 rows, ~1.4s total

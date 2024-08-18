@@ -10,7 +10,7 @@
 #include <time.h>
 #include <memory.h>
 #include <unistd.h>
-#include "weather_stations.h"
+#include "static_data.h"
 
 #define MYMIN(x,y) (x) < (y) ? (x) : (y)
 
@@ -21,7 +21,7 @@
 
 typedef struct station_data {
     size_t num_indices;
-    char** station_names;
+    name_and_length* station_names;
     size_t station_indices[MAX_WEATHER_STATIONS];
 } station_data;
 
@@ -36,7 +36,7 @@ static inline int myrand_wrapper_const(void) {
 // Change this to use different rand implementations in the
 // loops.
 static inline int myrand(void) {
-    return myrand_wrapper_rand();
+    return myrand_wrapper_const();
 }
 
 void shuffle_indices(char* indices, size_t count) {
@@ -50,10 +50,10 @@ void shuffle_indices(char* indices, size_t count) {
 }
 
 station_data* create_weather_stations(size_t num_required_stations) {
-    char** p = weather_stations;
-    // TODO: Can I precalc this? Doubt it matters.
+    name_and_length* p = weather_stations;
+    // No need to pre-calc this. It costs almost nothing to do this (relative to everything else)
     size_t total_stations = 0;
-    while (*p) {
+    while (p->length) {
         total_stations++;
         p++;
     }
@@ -81,16 +81,20 @@ station_data* create_weather_stations(size_t num_required_stations) {
 }
 
 // WARNING: Not threadsafe.
-static inline const char* get_random_weather_station(const station_data* data) {
+static inline const name_and_length* get_random_weather_station(const station_data* data) {
     // Dirty, but this is technically going to give a uniform distribution of
     // place names when generating a large number of rows.
     static int index = -1;
     index = (index + 1) % data->num_indices;
-    return data->station_names[data->station_indices[index]];
+    return &data->station_names[data->station_indices[index]];
 }
 
 static inline void write_random_temperature_and_newline(char** buffer) {
-    int index = myrand() % NUMBER_OF_NUMBERS;
+    // Dirty. See above. We can re-add some randonmess but shuffling but the
+    // temperatures and place names. Although if we shuffle temps we need to store
+    // pairs with the strlen like the name
+    static int index = -1;
+    index = (index + 1) % NUMBER_OF_NUMBERS;
     size_t strsize = 4;
     if (index > FIVE_CHAR_LIMIT) {
         strsize = 6;
@@ -104,11 +108,10 @@ static inline void write_random_temperature_and_newline(char** buffer) {
 }
 
 static inline void write_line(FILE* outfile, const station_data* data, char** pbuf) {
-    const char* station_name = get_random_weather_station(data);
+    const name_and_length* name_and_length = get_random_weather_station(data);
     // TODO: Similar to memcpy. Can I create a faster version where I don't need to move the buffer?
-    strcpy(*pbuf, station_name); // Copying makes sense as we're managing the fwrite buffer ourselves
-    // TODO: Calculating strlen is wasteful
-    *pbuf += strlen(station_name); // Semi colon is included in station name
+    strcpy(*pbuf, name_and_length->name); // Copying makes sense as we're managing the fwrite buffer ourselves
+    *pbuf += name_and_length->length; // Semi colon is included in station name
     write_random_temperature_and_newline(pbuf);
 }
 
@@ -123,9 +126,9 @@ void write_data(FILE* f, int num_rows, int num_station_names) {
     char* pbuf = BUFFER;
     for (size_t i = 0; i < num_rows; ++i) {
         // TODO: Time without the logging. Even this check will be costing us.
-        if (i % 1'000'000 == 0) {
-            printf("Progress: %zu lines\n", i);
-        }
+//        if (i % 1'000'000 == 0) {
+//            printf("Progress: %zu lines\n", i);
+//        }
         write_line(f, data, &pbuf);
         size_t buffer_used = (pbuf - BUFFER);
         if (WRITE_BUFFER_SIZE - buffer_used < MAX_ROW_SIZE) {
