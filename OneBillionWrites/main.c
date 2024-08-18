@@ -80,10 +80,13 @@ station_data* create_weather_stations(size_t num_required_stations) {
     return data;
 }
 
+// WARNING: Not threadsafe.
 static inline const char* get_random_weather_station(const station_data* data) {
-    // TODO: This rand call seems significant. Why not just use an incrementing number?
-    // That would give a uniform dist!
-    return data->station_names[data->station_indices[rand() % data->num_indices]];
+    // Dirty, but this is technically going to give a uniform distribution of
+    // place names when generating a large number of rows.
+    static int index = -1;
+    index = (index + 1) % data->num_indices;
+    return data->station_names[data->station_indices[index]];
 }
 
 static inline void write_random_temperature_and_newline(char** buffer) {
@@ -102,7 +105,9 @@ static inline void write_random_temperature_and_newline(char** buffer) {
 
 static inline void write_line(FILE* outfile, const station_data* data, char** pbuf) {
     const char* station_name = get_random_weather_station(data);
+    // TODO: Similar to memcpy. Can I create a faster version where I don't need to move the buffer?
     strcpy(*pbuf, station_name); // Copying makes sense as we're managing the fwrite buffer ourselves
+    // TODO: Calculating strlen is wasteful
     *pbuf += strlen(station_name); // Semi colon is included in station name
     write_random_temperature_and_newline(pbuf);
 }
@@ -117,6 +122,7 @@ void write_data(FILE* f, int num_rows, int num_station_names) {
     alignas(4096) char BUFFER[WRITE_BUFFER_SIZE];
     char* pbuf = BUFFER;
     for (size_t i = 0; i < num_rows; ++i) {
+        // TODO: Time without the logging. Even this check will be costing us.
         if (i % 1'000'000 == 0) {
             printf("Progress: %zu lines\n", i);
         }
