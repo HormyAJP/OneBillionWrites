@@ -23,6 +23,20 @@ typedef struct station_data {
     size_t station_indices[MAX_WEATHER_STATIONS];
 } station_data;
 
+inline int myrand_wrapper_rand(void) {
+    return rand();
+}
+
+inline int myrand_wrapper_const(void) {
+    return 1;
+}
+
+// Change this to use different rand implementations in the
+// loops.
+inline int myrand(void) {
+    return myrand_wrapper_const();
+}
+
 void shuffle_indices(char* indices, size_t count) {
     // Do a fischer yates shuffle
     for (size_t i = count - 1; i > 0; --i) {
@@ -64,26 +78,26 @@ station_data* create_weather_stations(size_t num_required_stations) {
     return data;
 }
 
-const char* get_random_weather_station(const station_data* data) {
+inline const char* get_random_weather_station(const station_data* data) {
+    // TODO: This rand call seems significant
     return data->station_names[data->station_indices[rand() % data->num_indices]];
 }
 
-void write_random_temperature(char** buffer) {
-    int r = rand();
-    if (r >= RAND_MAX / 2) {
+inline void write_random_temperature(char** buffer) {
+    int r = myrand();
+    if (myrand() > RAND_MAX) {
         *((*buffer)++) = '-';
     }
 
-    r = rand();
-    if (r >= RAND_MAX / 2) {
-        *((*buffer)++) = '0' + (rand() % 10);
+    if (myrand() > RAND_MAX) {
+        *((*buffer)++) = '0' + (myrand() % 10);
     }
-    *((*buffer)++) = '0' + (rand() % 10);
+    *((*buffer)++) = '0' + (myrand() % 10);
     *((*buffer)++) = '.';
-    *((*buffer)++) = '0' + (rand() % 10);
+    *((*buffer)++) = '0' + (myrand() % 10);
 }
 
-void write_line(FILE* outfile, const station_data* data) {
+inline void write_line(FILE* outfile, const station_data* data) {
     char BUFFER[MAX_ROW_SIZE];
     char* buffer = BUFFER;
     const char* station_name = get_random_weather_station(data);
@@ -112,7 +126,7 @@ int main(int argc, char * argv[]) {
     
     const char* filename = "output.txt";
     int num_station_names = 100;
-    int num_rows = 100000000;
+    int num_rows = 10000000;
     
     while ((opt = getopt(argc, argv, optstring)) != -1) {
         switch (opt) {
