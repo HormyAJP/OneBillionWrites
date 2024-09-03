@@ -17,7 +17,7 @@
 #define MAX_WEATHER_STATIONS 10000
 #define MAX_ROW_SIZE (100 + 1 + 4 + 1)
 // Heuristally this was doing quite well.
-#define WRITE_BUFFER_SIZE 4096 * 8
+#define WRITE_BUFFER_SIZE 4096 * 64
 
 typedef struct station_data {
     size_t num_indices;
