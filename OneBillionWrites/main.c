@@ -20,7 +20,7 @@
 // Heuristally this was doing quite well.
 #define WRITE_BUFFER_SIZE 4096 * 64
 
-#define USE_UNIFORM_DISTRIBUTIONS 1
+#define USE_UNIFORM_DISTRIBUTIONS 0
 
 static const char VALID_STATION_CHARACTERS[] = {
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'- "

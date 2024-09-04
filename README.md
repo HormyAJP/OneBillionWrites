@@ -1,4 +1,11 @@
-# Ideas for improvement
+# General
+
+This is my [custom challenge]
+(https://modelephant.medium.com/1-billion-writes-challenge-5f3d39138ee2) to see how fast I can
+write the input file for the [1bn rows challenge](https://1brc.dev/#). It's reasonably well
+optimized. I put no effort in to optimized random number generation.
+
+# Junk
 
 Current timings:
 * HEAD: 10,000,000 rows, ~0.2s total (randomness all gone)
